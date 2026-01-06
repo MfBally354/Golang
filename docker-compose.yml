@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # API Service (Gin)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: golang-api
+    ports:
+      - "8090:8090"
+    environment:
+      - GO_ENV=production
+      - PORT=8090
+    restart: unless-stopped
+    networks:
+      - golang-network
+
+  # Backend Service (net/http)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: golang-backend
+    ports:
+      - "8091:8090"
+    restart: unless-stopped
+    networks:
+      - golang-network
+
+  # PostgreSQL Database (opsional, untuk development)
+  postgres:
+    image: postgres:15-alpine
+    container_name: golang-postgres
+    environment:
+      POSTGRES_USER: golang
+      POSTGRES_PASSWORD: golang123
+      POSTGRES_DB: golang_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - golang-network
+    restart: unless-stopped
+
+  # Redis (opsional, untuk caching)
+  redis:
+    image: redis:7-alpine
+    container_name: golang-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - golang-network
+    restart: unless-stopped
+
+networks:
+  golang-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
